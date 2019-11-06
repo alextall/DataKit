@@ -1,6 +1,6 @@
-import Foundation
 import Combine
 import CoreData
+import Foundation
 import os
 
 public class PersistenceClient {
@@ -13,6 +13,7 @@ public class PersistenceClient {
         }
         fatalError("Failed to find managed object model file.")
     }
+
     /// A default `NSPersistentContainer`
     /// - Uses the `Bundle.main.bundleIdentifier` or "model" as a default name.
     /// - Searches `Bundle.main` for an `NSManagedObjectModel`
@@ -23,7 +24,7 @@ public class PersistenceClient {
 
     public init(container: NSPersistentContainer = defaultContainer) {
         os_log("Loading persistent stores...")
-        container.loadPersistentStores { (_, error) in
+        container.loadPersistentStores { _, error in
             if let error = error {
                 fatalError("Error loading persistent stores: \(error.localizedDescription)")
             }
@@ -71,7 +72,6 @@ public extension PersistenceClient {
 // MARK: - Contexts
 
 public extension PersistenceClient {
-
     /// The managed object context associated with the main queue. (read-only)
     ///
     /// This property contains a reference to the `NSManagedObjectContext` that is created and owned by the persistent container which is associated with the main queue of the application. This context is created automatically as part of the initialization of the persistent container.
@@ -92,18 +92,17 @@ public extension PersistenceClient {
 // MARK: - Saving
 
 public extension PersistenceClient {
-
     @discardableResult
     func save<T>(scratchPad: ScratchPad<T>) -> Future<ScratchPad<T>, PersistenceError> {
         return Future { promise in
-            let _ = self.save(context: scratchPad.context)
+            _ = self.save(context: scratchPad.context)
                 .sink(receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
+                    if case let .failure(error) = completion {
                         promise(.failure(error))
                     }
                 }) { _ in
                     promise(.success(scratchPad))
-            }
+                }
         }
     }
 
@@ -124,44 +123,42 @@ public extension PersistenceClient {
 // MARK: - Fetching
 
 public extension PersistenceClient {
-
     func objects<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
                                           in context: NSManagedObjectContext? = nil)
         -> Future<ScratchPad<T>, PersistenceError> {
-            let context = context ?? viewContext
-            return Future { promise in
-                do {
-                    let result = try context.fetch(fetchRequest)
-                    return promise(.success(.list(value: result, context: context)))
-                } catch let error as NSError {
-                    return promise(.failure(.contextFetch(underlyingError: error)))
-                }
+        let context = context ?? viewContext
+        return Future { promise in
+            do {
+                let result = try context.fetch(fetchRequest)
+                return promise(.success(.list(value: result, context: context)))
+            } catch let error as NSError {
+                return promise(.failure(.contextFetch(underlyingError: error)))
             }
+        }
     }
 
     func object<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
                                          in context: NSManagedObjectContext? = nil)
         -> Future<ScratchPad<T>, PersistenceError> {
-            let context = context ?? viewContext
-            return Future { promise in
-                do {
-                    let result = try context.fetch(fetchRequest)
-                    if let object = result.first {
-                        return promise(.success(.object(value: object, context: context)))
-                    } else {
-                        return promise(.failure(.noObjectsMatchingPredicate))
-                    }
-                } catch let error as NSError {
-                    return promise(.failure(.contextFetch(underlyingError: error)))
+        let context = context ?? viewContext
+        return Future { promise in
+            do {
+                let result = try context.fetch(fetchRequest)
+                if let object = result.first {
+                    return promise(.success(.object(value: object, context: context)))
+                } else {
+                    return promise(.failure(.noObjectsMatchingPredicate))
                 }
+            } catch let error as NSError {
+                return promise(.failure(.contextFetch(underlyingError: error)))
             }
+        }
     }
 }
 
 // MARK: - Object Reification
 
 public extension PersistenceClient {
-
     func object<T: NSManagedObject>(_ obj: T,
                                     in context: NSManagedObjectContext? = nil) -> ScratchPad<T> {
         let context = context ?? viewContext
@@ -171,7 +168,7 @@ public extension PersistenceClient {
         return object(for: T.self, with: obj.objectID, in: context)
     }
 
-    private func object<T: NSManagedObject>(for type: T.Type,
+    private func object<T: NSManagedObject>(for _: T.Type,
                                             with objectID: NSManagedObjectID,
                                             in context: NSManagedObjectContext) -> ScratchPad<T> {
         guard let existing = try? context.existingObject(with: objectID) as? T else {
@@ -184,41 +181,39 @@ public extension PersistenceClient {
 // MARK: - Deleting
 
 public extension PersistenceClient {
-
     @discardableResult
-    func deleteObjects<T: NSManagedObject>(ofType type: T.Type,
+    func deleteObjects<T: NSManagedObject>(ofType _: T.Type,
                                            in context: NSManagedObjectContext? = nil)
         -> Future<ScratchPad<T>, PersistenceError> {
-            let context = context ?? viewContext
-            return Future { promise in
-                do {
-                    let request = T.fetchRequest()
-                    guard let all = try context.fetch(request) as? [T] else {
-                        return promise(.failure(.noObjectsMatchingPredicate))
-                    }
-                    all.forEach(context.delete)
-                    return promise(.success(.empty(context)))
-                } catch let error as NSError {
-                    return promise(.failure(.contextFetch(underlyingError: error)))
+        let context = context ?? viewContext
+        return Future { promise in
+            do {
+                let request = T.fetchRequest()
+                guard let all = try context.fetch(request) as? [T] else {
+                    return promise(.failure(.noObjectsMatchingPredicate))
                 }
+                all.forEach(context.delete)
+                return promise(.success(.empty(context)))
+            } catch let error as NSError {
+                return promise(.failure(.contextFetch(underlyingError: error)))
             }
+        }
     }
 
     @discardableResult
     func deleteObjects<T: NSManagedObject>(in scratch: ScratchPad<T>)
         -> Future<ScratchPad<T>, Never> {
-            return Future { promise in
-                scratch.array.forEach(scratch.context.delete)
-                try? scratch.context.save()
-                return promise(.success(.empty(scratch.context)))
-            }
+        return Future { promise in
+            scratch.array.forEach(scratch.context.delete)
+            try? scratch.context.save()
+            return promise(.success(.empty(scratch.context)))
+        }
     }
 }
 
 // MARK: - Object Instantiation
 
 public extension PersistenceClient {
-
     func new<T: NSManagedObject>(_: T.Type,
                                  in context: NSManagedObjectContext? = nil) -> ScratchPad<T> {
         let context = context ?? viewContext
@@ -226,7 +221,7 @@ public extension PersistenceClient {
     }
 }
 
-//public extension PersistenceClient {
+// public extension PersistenceClient {
 //    func newFetchedRestultsController<T: NSManagedObject>(of type: T.Type,
 //                                                          in context: NSManagedObjectContext? = nil) -> NSFetchedResultsController<T> {
 //        let context = context ?? viewContext
@@ -235,4 +230,4 @@ public extension PersistenceClient {
 //                                          sectionNameKeyPath: nil,
 //                                          cacheName: nil)
 //    }
-//}
+// }

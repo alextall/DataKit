@@ -1,10 +1,10 @@
-import Foundation
 import Combine
+import Foundation
 
 public protocol APIClient {
     var session: URLSession { get }
     var configuration: URLSessionConfiguration { get }
-    
+
     var cachePolicy: URLRequest.CachePolicy { get }
     var timeout: TimeInterval { get }
     var customHeaders: [String: String] { get }
@@ -13,41 +13,41 @@ public protocol APIClient {
 public extension APIClient {
     func publisher(_ request: URLRequest) -> AnyPublisher<HTTPOutput, URLError> {
         return session.dataTaskPublisher(for: request)
-            .map { (data, response) in
-                return (data, response as! HTTPURLResponse)
-        }.eraseToAnyPublisher()
+            .map { data, response in
+                (data, response as! HTTPURLResponse)
+            }.eraseToAnyPublisher()
     }
-    
+
     func publisher(_ url: URL) -> AnyPublisher<HTTPOutput, URLError> {
         return session.dataTaskPublisher(for: url)
-            .map { (data, response) in
-                return (data, response as! HTTPURLResponse)
-        }.eraseToAnyPublisher()
+            .map { data, response in
+                (data, response as! HTTPURLResponse)
+            }.eraseToAnyPublisher()
     }
-    
+
     func newRequest(_ url: URL,
-                 cachePolicy: URLRequest.CachePolicy? = nil,
-                 timeoutInterval: TimeInterval? = nil,
-                 headers: [String: String] = [:]) -> URLRequest {
+                    cachePolicy: URLRequest.CachePolicy? = nil,
+                    timeoutInterval: TimeInterval? = nil,
+                    headers: [String: String] = [:]) -> URLRequest {
         return URLRequest(url: url,
                           cachePolicy: cachePolicy ?? self.cachePolicy,
-                          timeoutInterval: timeoutInterval ?? self.timeout)
+                          timeoutInterval: timeoutInterval ?? timeout)
             .appending(headers: customHeaders.merging(headers,
-                                                      uniquingKeysWith: { return $1 }))
+                                                      uniquingKeysWith: { $1 }))
     }
 }
 
 extension APIClient {
     func execute(_ request: URLRequest) -> Future<HTTPOutput, URLError> {
         return Future { promise in
-            let _ = self.publisher(request)
+            _ = self.publisher(request)
                 .sink(receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
+                    if case let .failure(error) = completion {
                         return promise(.failure(error))
                     }
                 }) { value in
-                    return promise(.success(value))
-            }
+                    promise(.success(value))
+                }
         }
     }
 }
