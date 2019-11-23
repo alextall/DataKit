@@ -5,22 +5,6 @@ import os
 
 public class PersistenceClient {
     private let container: NSPersistentContainer
-    private class var defaultManagedObjectModel: NSManagedObjectModel {
-        for url in Bundle.main.urls(forResourcesWithExtension: "momd", subdirectory: nil) ?? [] {
-            if let model = NSManagedObjectModel(contentsOf: url) {
-                return model
-            }
-        }
-        fatalError("Failed to find managed object model file.")
-    }
-
-    /// A default `NSPersistentContainer`
-    /// - Uses the `Bundle.main.bundleIdentifier` or "model" as a default name.
-    /// - Searches `Bundle.main` for an `NSManagedObjectModel`
-    public class var defaultContainer: NSPersistentContainer {
-        return NSPersistentContainer(name: Bundle.main.bundleIdentifier ?? "model",
-                                     managedObjectModel: defaultManagedObjectModel)
-    }
 
     public init(container: NSPersistentContainer = defaultContainer) {
         os_log("Loading persistent stores...")
@@ -42,6 +26,23 @@ public class PersistenceClient {
 }
 
 public extension PersistenceClient {
+    private class var defaultManagedObjectModel: NSManagedObjectModel {
+        for url in Bundle.main.urls(forResourcesWithExtension: "momd", subdirectory: nil) ?? [] {
+            if let model = NSManagedObjectModel(contentsOf: url) {
+                return model
+            }
+        }
+        fatalError("Failed to find managed object model file.")
+    }
+
+    /// A default `NSPersistentContainer`
+    /// - Uses the `Bundle.main.bundleIdentifier` or "model" as a default name.
+    /// - Searches `Bundle.main` for an `NSManagedObjectModel`
+    class var defaultContainer: NSPersistentContainer {
+        return NSPersistentContainer(name: Bundle.main.bundleIdentifier ?? "model",
+                                     managedObjectModel: defaultManagedObjectModel)
+    }
+    
     /// An `NSPersistentContainer` with a store of type `NSInMemoryStoreType`
     /// - Uses the `defaultContainer`
     class var inMemoryContainer: NSPersistentContainer {
@@ -92,6 +93,8 @@ public extension PersistenceClient {
 // MARK: - Saving
 
 public extension PersistenceClient {
+    /// Saves the underlying `NSManagedObjectContext` in a `ScratchPad`
+    /// - Parameter scratchPad: `ScratchPad` with changes to save.
     @discardableResult
     func save<T>(scratchPad: ScratchPad<T>) -> Future<ScratchPad<T>, PersistenceError> {
         return Future { promise in
@@ -123,6 +126,10 @@ public extension PersistenceClient {
 // MARK: - Fetching
 
 public extension PersistenceClient {
+    /// Returns a `ScratchPad` of containing an array of objects that meet the criteria specified by a given fetch request.
+    /// - Parameters:
+    ///   - fetchRequest: `NSFetchRequest` describing the objects to retrieve
+    ///   - context: `NSManagedObjectContext` to use. Defaults to the `viewContext` if nil.
     func objects<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
                                           in context: NSManagedObjectContext? = nil)
         -> Future<ScratchPad<T>, PersistenceError> {
@@ -137,6 +144,10 @@ public extension PersistenceClient {
         }
     }
 
+    /// Returns a `ScratchPad` of containing a single object that meet the criteria specified by a given fetch request.
+    /// - Parameters:
+    ///   - fetchRequest: `NSFetchRequest` describing the objects to retrieve
+    ///   - context: `NSManagedObjectContext` to use. Defaults to the `viewContext` if nil.
     func object<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
                                          in context: NSManagedObjectContext? = nil)
         -> Future<ScratchPad<T>, PersistenceError> {
@@ -159,6 +170,10 @@ public extension PersistenceClient {
 // MARK: - Object Reification
 
 public extension PersistenceClient {
+    /// Fetches the requested object from the specified context.
+    /// - Parameters:
+    ///   - obj: The object to fetch.
+    ///   - context: `NSManagedObjectContext` to use. Defaults to the `viewContext` if nil.
     func object<T: NSManagedObject>(_ obj: T,
                                     in context: NSManagedObjectContext? = nil) -> ScratchPad<T> {
         let context = context ?? viewContext
@@ -178,9 +193,13 @@ public extension PersistenceClient {
     }
 }
 
-// MARK: - Deleting
+// MARK: - Deletion
 
 public extension PersistenceClient {
+    /// Deletes all objects of the given type from the specified context.
+    /// - Parameters:
+    ///   - type: The type of a set of objects to delete.
+    ///   - context: `NSManagedObjectContext` to use. Defaults to the `viewContext` if nil.
     @discardableResult
     func deleteObjects<T: NSManagedObject>(ofType _: T.Type,
                                            in context: NSManagedObjectContext? = nil)
@@ -200,6 +219,9 @@ public extension PersistenceClient {
         }
     }
 
+    /// Deletes all objects in the given scratchpad.
+    /// - Parameters:
+    ///   - scratch: `ScratchPad` to use
     @discardableResult
     func deleteObjects<T: NSManagedObject>(in scratch: ScratchPad<T>)
         -> Future<ScratchPad<T>, Never> {
@@ -214,20 +236,14 @@ public extension PersistenceClient {
 // MARK: - Object Instantiation
 
 public extension PersistenceClient {
+    /// Instantiates a new object of the given type using the specified context.
+    /// - Parameters:
+    ///   - type: The type of object to instantiate.
+    ///   - context: `NSManagedObjectContext` to use. Defaults to the `viewContext` if nil.
+    /// - Returns: A `ScratchPad` with an object of the type passed in.
     func new<T: NSManagedObject>(_: T.Type,
                                  in context: NSManagedObjectContext? = nil) -> ScratchPad<T> {
         let context = context ?? viewContext
         return .object(value: T(context: context), context: context)
     }
 }
-
-// public extension PersistenceClient {
-//    func newFetchedRestultsController<T: NSManagedObject>(of type: T.Type,
-//                                                          in context: NSManagedObjectContext? = nil) -> NSFetchedResultsController<T> {
-//        let context = context ?? viewContext
-//        return NSFetchedResultsController(fetchRequest: T.fetchRequest(),
-//                                          managedObjectContext: context,
-//                                          sectionNameKeyPath: nil,
-//                                          cacheName: nil)
-//    }
-// }
