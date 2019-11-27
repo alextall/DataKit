@@ -62,12 +62,10 @@ public extension PersistenceClient {
     }
 }
 
-public extension PersistenceClient {
-    enum PersistenceError: Error {
-        case noObjectsMatchingPredicate
-        case contextFetch(underlyingError: NSError)
-        case contextSave(underlyingError: NSError)
-    }
+public enum PersistenceError: Error {
+    case noObjectsMatchingPredicate
+    case contextFetch(underlyingError: NSError)
+    case contextSave(underlyingError: NSError)
 }
 
 // MARK: - Contexts
@@ -165,14 +163,6 @@ public extension PersistenceClient {
             }
         }
     }
-}
-
-public extension PersistenceClient {
-//    func objects<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
-//                                          in context: NSManagedObjectContext? = nil)
-//        -> AnyPublisher<ScratchPad<T>, PersistenceError> {
-//            return
-//    }
 }
 
 // MARK: - Object Reification
