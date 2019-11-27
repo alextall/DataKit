@@ -12,7 +12,6 @@ public protocol HTTPClient {
 }
 
 public extension HTTPClient {
-
     func newRequest(_ url: URL,
                     cachePolicy: URLRequest.CachePolicy? = nil,
                     timeoutInterval: TimeInterval? = nil,
@@ -31,21 +30,20 @@ public enum HTTPError: Error {
 }
 
 extension HTTPClient {
-
     /// Execute the provided `URLRequest`
     /// - Parameter request: A `URLRequest` to execute
     func execute(_ request: URLRequest) -> Future<HTTPOutput, HTTPError> {
         return Future { promise in
             self.session.dataTask(with: request,
                                   completionHandler: { data, response, error in
-                                    if let error = error as? URLError {
-                                        promise(.failure(.urlError(error)))
-                                    } else if let error = error {
-                                        promise(.failure(.unknown(error)))
-                                    }
-                                    let data = data ?? Data()
-                                    let response = response as! HTTPURLResponse
-                                    promise(.success(.init(data: data, response: response)))
+                                      if let error = error as? URLError {
+                                          promise(.failure(.urlError(error)))
+                                      } else if let error = error {
+                                          promise(.failure(.unknown(error)))
+                                      }
+                                      let data = data ?? Data()
+                                      let response = response as! HTTPURLResponse
+                                      promise(.success(.init(data: data, response: response)))
             }).resume()
         }
     }
@@ -54,7 +52,6 @@ extension HTTPClient {
 // MARK: - GET
 
 public extension HTTPClient {
-
     /// Execute a `GET` HTTP request with the provided `URL`
     /// - Parameter url: A `URL` object to use for the request
     func get(_ url: URL) -> AnyPublisher<HTTPOutput, HTTPError> {
@@ -74,7 +71,6 @@ public extension HTTPClient {
 // MARK: - POST
 
 public extension HTTPClient {
-
     /// Execute a `POST` HTTP request with the provided `URL`
     /// - Parameter url: A `URL` object to use for the request
     func post(_ url: URL) -> AnyPublisher<HTTPOutput, HTTPError> {
@@ -94,7 +90,6 @@ public extension HTTPClient {
 // MARK: - PUT
 
 public extension HTTPClient {
-
     /// Execute a `PUT` HTTP request with the provided `URL`
     /// - Parameter url: A `URL` object to use for the request
     func put(_ url: URL) -> AnyPublisher<HTTPOutput, HTTPError> {
@@ -114,7 +109,6 @@ public extension HTTPClient {
 // MARK: - DELETE
 
 public extension HTTPClient {
-
     /// Execute a `DELETE` HTTP request with the provided `URL`
     /// - Parameter url: A `URL` object to use for the request
     func delete(_ url: URL) -> AnyPublisher<HTTPOutput, HTTPError> {

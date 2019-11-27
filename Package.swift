@@ -31,13 +31,15 @@ let package = Package(
             name: "PersistenceClient+Encodable",
             targets: [
                 "PersistenceClient",
-                "PersistenceClient+Encodable",]
+                "PersistenceClient+Encodable",
+            ]
         ),
         .library(
             name: "PersistenceClient+Decodable",
             targets: [
                 "PersistenceClient",
-                "PersistenceClient+Decodable",]
+                "PersistenceClient+Decodable",
+            ]
         ),
         .library(
             name: "PersistenceClient+Codable",
@@ -52,7 +54,7 @@ let package = Package(
             targets: [
                 "HTTPClient",
             ]
-        )
+        ),
     ],
     targets: [
         .target(
