@@ -42,7 +42,7 @@ public extension PersistenceClient {
         return NSPersistentContainer(name: Bundle.main.bundleIdentifier ?? "model",
                                      managedObjectModel: defaultManagedObjectModel)
     }
-    
+
     /// An `NSPersistentContainer` with a store of type `NSInMemoryStoreType`
     /// - Uses the `defaultContainer`
     class var inMemoryContainer: NSPersistentContainer {
@@ -167,6 +167,14 @@ public extension PersistenceClient {
     }
 }
 
+public extension PersistenceClient {
+//    func objects<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
+//                                          in context: NSManagedObjectContext? = nil)
+//        -> AnyPublisher<ScratchPad<T>, PersistenceError> {
+//            return
+//    }
+}
+
 // MARK: - Object Reification
 
 public extension PersistenceClient {
@@ -247,3 +255,7 @@ public extension PersistenceClient {
         return .object(value: T(context: context), context: context)
     }
 }
+
+
+
+
