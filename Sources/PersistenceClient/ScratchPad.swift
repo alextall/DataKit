@@ -7,20 +7,20 @@ public enum ScratchPad<T: NSFetchRequestResult> {
 
     public var context: NSManagedObjectContext {
         switch self {
-        case let .object(_, ctx):
-            return ctx
-        case let .list(_, ctx):
-            return ctx
-        case let .empty(ctx):
-            return ctx
+        case let .object(_, context):
+            return context
+        case let .list(_, context):
+            return context
+        case let .empty(context):
+            return context
         }
     }
 
     public var object: T? {
         switch self {
-        case let .object(obj, _):
-            return obj
-        case let .list(objs, _):
+        case let .object(object, _):
+            return object
+        case let .list(objects, _):
             return objs.first
         case .empty:
             return nil
@@ -29,9 +29,9 @@ public enum ScratchPad<T: NSFetchRequestResult> {
 
     public var array: [T] {
         switch self {
-        case let .object(obj, _):
+        case let .object(object, _):
             return [obj]
-        case let .list(objs, _):
+        case let .list(objects, _):
             return objs
         case .empty:
             return []
