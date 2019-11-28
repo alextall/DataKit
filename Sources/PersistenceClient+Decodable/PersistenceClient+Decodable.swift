@@ -17,7 +17,7 @@ public extension PersistenceClient {
         return .object(value: result, context: context)
     }
     
-    /// Decodes an instance of the indicated type.
+    /// Decodes an array of the indicated type.
     func decodeJSON<T: NSManagedObject>(_ data: Data,
                                         with decoder: JSONDecoder = JSONDecoder(),
                                         to _: [T].Type,
@@ -53,7 +53,7 @@ public extension PersistenceClient {
         }
     }
     
-    /// Decodes an instance of the indicated type.
+    /// Decodes an array of the indicated type.
     func decodePlist<T: NSManagedObject>(_ data: Data,
                                          with decoder: PropertyListDecoder = PropertyListDecoder(),
                                          to _: [T].Type,
