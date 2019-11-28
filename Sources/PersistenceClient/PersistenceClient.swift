@@ -20,7 +20,7 @@ public class PersistenceClient {
 
     /// URLs for the persistent stores.
     /// Useful for debugging purposes
-    public var storeURL: [URL] {
+    public var storeURLs: [URL] {
         return container.persistentStoreDescriptions.compactMap { $0.url }
     }
 }
