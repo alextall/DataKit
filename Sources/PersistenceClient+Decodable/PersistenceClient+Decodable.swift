@@ -12,9 +12,12 @@ public extension PersistenceClient {
         let context = context ?? newBackgroundContext()
         decoder.userInfo[CodingUserInfoKey.managedObjectContext!] = context
         
-        let result = try decoder.decode(T.self, from: data)
-        
-        return .object(value: result, context: context)
+        do {
+            let result = try decoder.decode(T.self, from: data)
+            return .object(value: result, context: context)
+        } catch {
+            throw PersistenceError.decoding
+        }
     }
     
     /// Decodes an array of the indicated type.
@@ -46,8 +49,8 @@ public extension PersistenceClient {
         decoder.userInfo[CodingUserInfoKey.managedObjectContext!] = context
         
         do {
-            let result = try decoder.decode([T].self, from: data)
-            return .list(value: result, context: context)
+            let result = try decoder.decode(T.self, from: data)
+            return .object(value: result, context: context)
         } catch {
             throw PersistenceError.decoding
         }
