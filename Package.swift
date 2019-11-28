@@ -12,26 +12,72 @@ let package = Package(
         .watchOS(.v6),
     ],
     products: [
-        // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
             name: "DataKit",
-            targets: ["DataKit"]
+            targets: [
+                "PersistenceClient",
+                "PersistenceClient+Decodable",
+                "PersistenceClient+Encodable",
+                "HTTPClient",
+            ]
         ),
-    ],
-    dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
+        .library(
+            name: "PersistenceClient",
+            targets: [
+                "PersistenceClient",
+            ]
+        ),
+        .library(
+            name: "PersistenceClient+Encodable",
+            targets: [
+                "PersistenceClient",
+                "PersistenceClient+Encodable",
+            ]
+        ),
+        .library(
+            name: "PersistenceClient+Decodable",
+            targets: [
+                "PersistenceClient",
+                "PersistenceClient+Decodable",
+            ]
+        ),
+        .library(
+            name: "PersistenceClient+Codable",
+            targets: [
+                "PersistenceClient",
+                "PersistenceClient+Decodable",
+                "PersistenceClient+Encodable",
+            ]
+        ),
+        .library(
+            name: "HTTPClient",
+            targets: [
+                "HTTPClient",
+            ]
+        ),
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
-            name: "DataKit",
-            dependencies: []
+            name: "PersistenceClient",
+            path: "Sources/PersistenceClient"
         ),
-        .testTarget(
-            name: "DataKitTests",
-            dependencies: ["DataKit"]
+        .target(
+            name: "PersistenceClient+Decodable",
+            dependencies: [
+                "PersistenceClient",
+            ],
+            path: "Sources/PersistenceClient+Decodable"
+        ),
+        .target(
+            name: "PersistenceClient+Encodable",
+            dependencies: [
+                "PersistenceClient",
+            ],
+            path: "Sources/PersistenceClient+Encodable"
+        ),
+        .target(
+            name: "HTTPClient",
+            path: "Sources/HTTPClient"
         ),
     ]
 )

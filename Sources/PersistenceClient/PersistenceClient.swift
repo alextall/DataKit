@@ -42,7 +42,7 @@ public extension PersistenceClient {
         return NSPersistentContainer(name: Bundle.main.bundleIdentifier ?? "model",
                                      managedObjectModel: defaultManagedObjectModel)
     }
-    
+
     /// An `NSPersistentContainer` with a store of type `NSInMemoryStoreType`
     /// - Uses the `defaultContainer`
     class var inMemoryContainer: NSPersistentContainer {
@@ -62,12 +62,12 @@ public extension PersistenceClient {
     }
 }
 
-public extension PersistenceClient {
-    enum PersistenceError: Error {
-        case noObjectsMatchingPredicate
-        case contextFetch(underlyingError: NSError)
-        case contextSave(underlyingError: NSError)
-    }
+public enum PersistenceError: Error {
+    case noObjectsMatchingPredicate
+    case contextFetch(NSError)
+    case contextSave(NSError)
+    case encoding
+    case decoding
 }
 
 // MARK: - Contexts
@@ -117,7 +117,7 @@ public extension PersistenceClient {
                 }
                 promise(.success(()))
             } catch let error as NSError {
-                promise(.failure(.contextSave(underlyingError: error)))
+                promise(.failure(.contextSave(error)))
             }
         }
     }
@@ -139,7 +139,7 @@ public extension PersistenceClient {
                 let result = try context.fetch(fetchRequest)
                 return promise(.success(.list(value: result, context: context)))
             } catch let error as NSError {
-                return promise(.failure(.contextFetch(underlyingError: error)))
+                return promise(.failure(.contextFetch(error)))
             }
         }
     }
@@ -161,7 +161,7 @@ public extension PersistenceClient {
                     return promise(.failure(.noObjectsMatchingPredicate))
                 }
             } catch let error as NSError {
-                return promise(.failure(.contextFetch(underlyingError: error)))
+                return promise(.failure(.contextFetch(error)))
             }
         }
     }
@@ -214,7 +214,7 @@ public extension PersistenceClient {
                 all.forEach(context.delete)
                 return promise(.success(.empty(context)))
             } catch let error as NSError {
-                return promise(.failure(.contextFetch(underlyingError: error)))
+                return promise(.failure(.contextFetch(error)))
             }
         }
     }
