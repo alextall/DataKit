@@ -21,7 +21,7 @@ public enum ScratchPad<T: NSFetchRequestResult> {
         case let .object(object, _):
             return object
         case let .list(objects, _):
-            return objs.first
+            return objects.first
         case .empty:
             return nil
         }
@@ -30,9 +30,9 @@ public enum ScratchPad<T: NSFetchRequestResult> {
     public var array: [T] {
         switch self {
         case let .object(object, _):
-            return [obj]
+            return [object]
         case let .list(objects, _):
-            return objs
+            return objects
         case .empty:
             return []
         }

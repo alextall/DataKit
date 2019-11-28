@@ -9,7 +9,7 @@ public enum HTTPResponse {
         switch self {
         case let .body(data, _):
             return data
-        case let .empty(_, _):
+        case let .empty(_):
             return Data()
         }
     }
