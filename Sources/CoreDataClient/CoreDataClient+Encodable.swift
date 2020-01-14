@@ -1,10 +1,8 @@
-
 import CoreData
 import Foundation
-import PersistenceClient
 
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Encodes the object(s) in the given `ScratchPad` to JSON.
     /// - Parameter scratchPad: A `ScratchPad` with objects to encode
     /// - Parameter encoder: A `JSONEncoder` to use for encoding
@@ -20,7 +18,7 @@ public extension PersistenceClient {
     }
 }
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Encodes the object(s) in the given `ScratchPad` to a Plist.
     /// - Parameter scratchPad: A `ScratchPad` with objects to encode
     /// - Parameter encoder: A `PropertyListEncoder` to use for encoding

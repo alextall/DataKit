@@ -3,7 +3,7 @@ import CoreData
 import Foundation
 import os
 
-public class PersistenceClient {
+public class CoreDataClient {
     private let container: NSPersistentContainer
 
     public init(container: NSPersistentContainer = defaultContainer) {
@@ -25,7 +25,7 @@ public class PersistenceClient {
     }
 }
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     private class var defaultManagedObjectModel: NSManagedObjectModel {
         for url in Bundle.main.urls(forResourcesWithExtension: "momd", subdirectory: nil) ?? [] {
             if let model = NSManagedObjectModel(contentsOf: url) {
@@ -72,7 +72,7 @@ public enum PersistenceError: Error {
 
 // MARK: - Contexts
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// The managed object context associated with the main queue. (read-only)
     ///
     /// This property contains a reference to the `NSManagedObjectContext` that is created and owned by the persistent container which is associated with the main queue of the application. This context is created automatically as part of the initialization of the persistent container.
@@ -92,7 +92,7 @@ public extension PersistenceClient {
 
 // MARK: - Saving
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Saves the underlying `NSManagedObjectContext` in a `ScratchPad`
     /// - Parameter scratchPad: `ScratchPad` with changes to save.
     @discardableResult
@@ -125,7 +125,7 @@ public extension PersistenceClient {
 
 // MARK: - Fetching
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Returns a `ScratchPad` of containing an array of objects that meet the criteria specified by a given fetch request.
     /// - Parameters:
     ///   - fetchRequest: `NSFetchRequest` describing the objects to retrieve
@@ -169,7 +169,7 @@ public extension PersistenceClient {
 
 // MARK: - Object Reification
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Fetches the requested object from the specified context.
     /// - Parameters:
     ///   - obj: The object to fetch.
@@ -195,7 +195,7 @@ public extension PersistenceClient {
 
 // MARK: - Deletion
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Deletes all objects of the given type from the specified context.
     /// - Parameters:
     ///   - type: The type of a set of objects to delete.
@@ -235,7 +235,7 @@ public extension PersistenceClient {
 
 // MARK: - Object Instantiation
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Instantiates a new object of the given type using the specified context.
     /// - Parameters:
     ///   - type: The type of object to instantiate.

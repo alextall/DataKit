@@ -15,38 +15,14 @@ let package = Package(
         .library(
             name: "DataKit",
             targets: [
-                "PersistenceClient",
-                "PersistenceClient+Decodable",
-                "PersistenceClient+Encodable",
+                "CoreDataClient",
                 "HTTPClient",
             ]
         ),
         .library(
-            name: "PersistenceClient",
+            name: "CoreDataClient",
             targets: [
-                "PersistenceClient",
-            ]
-        ),
-        .library(
-            name: "PersistenceClient+Encodable",
-            targets: [
-                "PersistenceClient",
-                "PersistenceClient+Encodable",
-            ]
-        ),
-        .library(
-            name: "PersistenceClient+Decodable",
-            targets: [
-                "PersistenceClient",
-                "PersistenceClient+Decodable",
-            ]
-        ),
-        .library(
-            name: "PersistenceClient+Codable",
-            targets: [
-                "PersistenceClient",
-                "PersistenceClient+Decodable",
-                "PersistenceClient+Encodable",
+                "CoreDataClient",
             ]
         ),
         .library(
@@ -58,22 +34,8 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "PersistenceClient",
-            path: "Sources/PersistenceClient"
-        ),
-        .target(
-            name: "PersistenceClient+Decodable",
-            dependencies: [
-                "PersistenceClient",
-            ],
-            path: "Sources/PersistenceClient+Decodable"
-        ),
-        .target(
-            name: "PersistenceClient+Encodable",
-            dependencies: [
-                "PersistenceClient",
-            ],
-            path: "Sources/PersistenceClient+Encodable"
+            name: "CoreDataClient",
+            path: "Sources/CoreDataClient"
         ),
         .target(
             name: "HTTPClient",

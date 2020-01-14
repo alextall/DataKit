@@ -1,8 +1,7 @@
 import CoreData
 import Foundation
-import PersistenceClient
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Decodes an instance of the indicated type.
     func decodeJSON<T: NSManagedObject>(_ data: Data,
                                         with decoder: JSONDecoder = JSONDecoder(),
@@ -38,7 +37,7 @@ public extension PersistenceClient {
     }
 }
 
-public extension PersistenceClient {
+public extension CoreDataClient {
     /// Decodes an instance of the indicated type.
     func decodePlist<T: NSManagedObject>(_ data: Data,
                                          with decoder: PropertyListDecoder = PropertyListDecoder(),
