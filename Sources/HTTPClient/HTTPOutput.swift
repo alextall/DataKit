@@ -1,7 +1,7 @@
 import Foundation
 
 /// An object containing the `HTTPResponse` and the HTTP body returned.
-public enum HTTPResponse {
+public enum HTTPOutput {
     case body(data: Data, response: HTTPURLResponse)
     case empty(HTTPURLResponse)
     
@@ -9,7 +9,7 @@ public enum HTTPResponse {
         switch self {
         case let .body(data, _):
             return data
-        case let .empty(_):
+        case .empty(_):
             return Data()
         }
     }
