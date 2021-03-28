@@ -3,9 +3,15 @@ import Foundation
 
 final public class CodableFileClient {
     private let location: FileLocation
+    private var monitor: FolderMonitor
 
     public init(location: FileLocation = .local) {
         self.location = location
+        do {
+            monitor = try .init(url: location.url)
+        } catch {
+            fatalError(error.localizedDescription)
+        }
     }
 }
 
@@ -73,6 +79,16 @@ public extension CodableFileClient {
         files()
             .flatMap(objects(from:))
             .eraseToAnyPublisher()
+    }
+
+    func objectMonitor<T: Codable & Identifiable>(of type: T.Type) -> AnyPublisher<[T], Never> {
+        Publishers.CombineLatest(
+            monitor.folderDidChange,
+            objects(of: type)
+                .replaceError(with: [])
+        )
+        .map(\.1)
+        .eraseToAnyPublisher()
     }
 }
 
