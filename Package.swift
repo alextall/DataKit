@@ -13,13 +13,6 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "DataKit",
-            targets: [
-                "CoreDataClient",
-                "HTTPClient",
-            ]
-        ),
-        .library(
             name: "CoreDataClient",
             targets: [
                 "CoreDataClient",
@@ -29,6 +22,12 @@ let package = Package(
             name: "HTTPClient",
             targets: [
                 "HTTPClient",
+            ]
+        ),
+        .library(
+            name: "CodableFileClient",
+            targets: [
+                "CodableFileClient",
             ]
         ),
     ],
@@ -41,5 +40,9 @@ let package = Package(
             name: "HTTPClient",
             path: "Sources/HTTPClient"
         ),
+        .target(
+            name: "CodableFileClient",
+            path: "Sources/CodableFileClient"
+        )
     ]
 )
