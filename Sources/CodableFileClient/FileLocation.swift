@@ -1,3 +1,5 @@
+import Foundation
+
 public enum FileLocation {
     case local
     case appGroup(identifier: String)
