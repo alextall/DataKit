@@ -5,8 +5,19 @@ final public class CodableFileClient {
     private let location: FileLocation
     private var monitor: FolderMonitor
 
-    public init(location: FileLocation = .documents) {
+    public init(location: FileLocation) throws {
+
+        var isDir: ObjCBool = true
+        let locationExists = FileManager.default.fileExists(atPath: location.path,
+                                                            isDirectory: &isDir)
+        if !locationExists || !isDir.boolValue {
+            try FileManager.default.createDirectory(at: location.url,
+                                                withIntermediateDirectories: true,
+                                                attributes: nil)
+        }
+
         self.location = location
+
         do {
             monitor = try .init(url: location.url)
         } catch {
