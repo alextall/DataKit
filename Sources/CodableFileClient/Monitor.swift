@@ -29,13 +29,3 @@ final class FolderMonitor {
         source.cancel()
     }
 }
-
-extension FolderMonitor: Hashable {
-    static func == (lhs: FolderMonitor, rhs: FolderMonitor) -> Bool {
-        lhs.handle.fileDescriptor == rhs.handle.fileDescriptor
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(handle.fileDescriptor)
-    }
-}
