@@ -1,7 +1,9 @@
 import Foundation
 
 public enum FileLocation {
-    case local
+    case applicationSupport
+    case documents
+    case cache
     case appGroup(identifier: String)
     // TODO for testability
     //    case memory
@@ -9,18 +11,37 @@ public enum FileLocation {
 
 extension FileLocation {
     var url: URL {
+        let possibleURL: URL?
+
         switch self {
-        case .local:
+        case .applicationSupport:
+            possibleURL = FileManager.default.urls(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask
+            ).first
+        case .appGroup(let identifier):
+            return FileManager.default.containerURL(
+                forSecurityApplicationGroupIdentifier: identifier
+            )!
+        case .documents:
             return FileManager.default.urls(
                 for: .documentDirectory,
                 in: .userDomainMask
             )
             .first!
-        case .appGroup(let identifier):
-            return FileManager.default.containerURL(
-                forSecurityApplicationGroupIdentifier: identifier
-            )!
+        case .cache:
+            return FileManager.default.urls(
+                for: .cachesDirectory,
+                in: .userDomainMask
+            )
+            .first!
         }
+
+        guard let url = possibleURL else {
+            fatalError("URL for \(self) does not exist")
+        }
+
+        return url
     }
 
     var path: String {
