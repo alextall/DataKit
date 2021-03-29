@@ -5,7 +5,7 @@ final public class CodableFileClient {
     private let location: FileLocation
     private var monitor: FolderMonitor
 
-    public init(location: FileLocation = .local) {
+    public init(location: FileLocation = .documents) {
         self.location = location
         do {
             monitor = try .init(url: location.url)
@@ -22,8 +22,7 @@ public extension CodableFileClient {
         Future { [encoder, location] promise in
             do {
                 let data = try encoder.encode(object)
-                try data.write(to: location.url
-                                .appendingPathComponent(filename + ".json"),
+                try data.write(to: location.url(for: filename),
                                options: [.atomic])
                 promise(.success(object))
             } catch {
@@ -31,15 +30,11 @@ public extension CodableFileClient {
             }
         }.eraseToAnyPublisher()
     }
-}
 
-public extension CodableFileClient {
     func save<T: Codable & Identifiable>(object: T) -> AnyPublisher<T, Error> where T.ID == UUID {
         save(object: object, filename: object.id.uuidString)
     }
-}
 
-public extension CodableFileClient {
     func save<T: Codable & Identifiable>(object: T) -> AnyPublisher<T, Error> where T.ID == String {
         save(object: object, filename: object.id)
     }
@@ -62,14 +57,8 @@ public extension CodableFileClient {
     }
 
     func objects<T: Codable & Identifiable>(from files: [URL]) -> AnyPublisher<[T], Error> {
-        Just(files)
-            .tryMap { urls in
-                try urls
-                    .map { url in
-                        try Data(contentsOf: url)
-                    }
-            }
-            .flatMap(Publishers.Sequence.init(sequence:))
+        Publishers.Sequence<[URL], Error>(sequence: files)
+            .tryMap { try Data(contentsOf: $0) }
             .decode(type: T.self, decoder: decoder)
             .collect()
             .eraseToAnyPublisher()
@@ -81,14 +70,13 @@ public extension CodableFileClient {
             .eraseToAnyPublisher()
     }
 
-    func objectMonitor<T: Codable & Identifiable>(of type: T.Type) -> AnyPublisher<[T], Never> {
-        Publishers.CombineLatest(
-            monitor.folderDidChange,
-            objects(of: type)
-                .replaceError(with: [])
-        )
-        .map(\.1)
-        .eraseToAnyPublisher()
+    func objectMonitor<T: Codable & Identifiable>(of type: T.Type) -> AnyPublisher<[T], Error> {
+        monitor.folderDidChange
+            .setFailureType(to: Error.self)
+            .flatMap({ [unowned self] _ in
+                objects(of: type)
+            })
+            .eraseToAnyPublisher()
     }
 }
 
@@ -104,6 +92,14 @@ public extension CodableFileClient {
                 promise(.failure(error))
             }
         }.eraseToAnyPublisher()
+    }
+
+    func delete<T: Codable & Identifiable>(object: T) -> AnyPublisher<(), Error> where T.ID == UUID {
+        delete(filename: object.id.uuidString)
+    }
+
+    func delete<T: Codable & Identifiable>(object: T) -> AnyPublisher<(), Error> where T.ID == String {
+        delete(filename: object.id)
     }
 }
 
