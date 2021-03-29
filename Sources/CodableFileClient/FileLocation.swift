@@ -1,12 +1,11 @@
 import Foundation
 
 public enum FileLocation {
+    case appGroup(identifier: String)
     case applicationSupport
     case documents
     case cache
-    case appGroup(identifier: String)
-    // TODO for testability
-    //    case memory
+    case custom(url: URL)
 }
 
 extension FileLocation {
@@ -14,27 +13,29 @@ extension FileLocation {
         let possibleURL: URL?
 
         switch self {
+        case let .appGroup(identifier):
+            possibleURL = FileManager.default.containerURL(
+                forSecurityApplicationGroupIdentifier: identifier
+            )
         case .applicationSupport:
             possibleURL = FileManager.default.urls(
                 for: .applicationSupportDirectory,
                 in: .userDomainMask
             ).first
-        case .appGroup(let identifier):
-            return FileManager.default.containerURL(
-                forSecurityApplicationGroupIdentifier: identifier
-            )!
-        case .documents:
-            return FileManager.default.urls(
-                for: .documentDirectory,
-                in: .userDomainMask
-            )
-            .first!
         case .cache:
-            return FileManager.default.urls(
+            possibleURL = FileManager.default.urls(
                 for: .cachesDirectory,
                 in: .userDomainMask
             )
-            .first!
+            .first
+        case let .custom(capturedURL):
+            possibleURL = capturedURL
+        case .documents:
+            possibleURL = FileManager.default.urls(
+                for: .documentDirectory,
+                in: .userDomainMask
+            )
+            .first
         }
 
         guard let url = possibleURL else {

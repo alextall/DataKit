@@ -1,9 +1,9 @@
-import Foundation
 import Combine
+import Foundation
 
 final class FolderMonitor {
     let handle: FileHandle
-    let folderDidChange: PassthroughSubject<(), Never> = .init()
+    let folderDidChange: PassthroughSubject<Void, Never> = .init()
     private var source: DispatchSourceFileSystemObject
 
     init(url: URL) throws {

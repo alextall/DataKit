@@ -43,6 +43,6 @@ let package = Package(
         .target(
             name: "CodableFileClient",
             path: "Sources/CodableFileClient"
-        )
+        ),
     ]
 )

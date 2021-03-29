@@ -1,19 +1,18 @@
 import Combine
 import Foundation
 
-final public class CodableFileClient {
+public final class CodableFileClient {
     private let location: FileLocation
     private var monitor: FolderMonitor
 
     public init(location: FileLocation) throws {
-
         var isDir: ObjCBool = true
         let locationExists = FileManager.default.fileExists(atPath: location.path,
                                                             isDirectory: &isDir)
         if !locationExists || !isDir.boolValue {
             try FileManager.default.createDirectory(at: location.url,
-                                                withIntermediateDirectories: true,
-                                                attributes: nil)
+                                                    withIntermediateDirectories: true,
+                                                    attributes: nil)
         }
 
         self.location = location
@@ -75,7 +74,7 @@ public extension CodableFileClient {
             .eraseToAnyPublisher()
     }
 
-    func objects<T: Codable & Identifiable>(of type: T.Type) -> AnyPublisher<[T], Error> {
+    func objects<T: Codable & Identifiable>(of _: T.Type) -> AnyPublisher<[T], Error> {
         files()
             .flatMap(objects(from:))
             .eraseToAnyPublisher()
@@ -84,9 +83,9 @@ public extension CodableFileClient {
     func objectMonitor<T: Codable & Identifiable>(of type: T.Type) -> AnyPublisher<[T], Error> {
         monitor.folderDidChange
             .setFailureType(to: Error.self)
-            .flatMap({ [unowned self] _ in
+            .flatMap { [unowned self] _ in
                 objects(of: type)
-            })
+            }
             .eraseToAnyPublisher()
     }
 }
@@ -94,7 +93,7 @@ public extension CodableFileClient {
 // MARK: - Deleting
 
 public extension CodableFileClient {
-    func delete(filename: String) -> AnyPublisher<(), Error> {
+    func delete(filename: String) -> AnyPublisher<Void, Error> {
         Future { [fileManager, location] promise in
             do {
                 try fileManager.removeItem(at: location.url(for: filename))
@@ -105,31 +104,33 @@ public extension CodableFileClient {
         }.eraseToAnyPublisher()
     }
 
-    func delete<T: Codable & Identifiable>(object: T) -> AnyPublisher<(), Error> where T.ID == UUID {
+    func delete<T: Codable & Identifiable>(object: T) -> AnyPublisher<Void, Error> where T.ID == UUID {
         delete(filename: object.id.uuidString)
     }
 
-    func delete<T: Codable & Identifiable>(object: T) -> AnyPublisher<(), Error> where T.ID == String {
+    func delete<T: Codable & Identifiable>(object: T) -> AnyPublisher<Void, Error> where T.ID == String {
         delete(filename: object.id)
     }
 }
 
-//MARK: - Helpers
+// MARK: - Helpers
 
 private extension CodableFileClient {
     var encoder: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         #if DEBUG
-        encoder.outputFormatting = .prettyPrinted
+            encoder.outputFormatting = .prettyPrinted
         #endif
         return encoder
     }
+
     var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
     }
+
     var fileManager: FileManager {
         FileManager.default
     }
