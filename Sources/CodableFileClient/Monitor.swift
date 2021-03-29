@@ -7,7 +7,9 @@ final class FolderMonitor {
     private var source: DispatchSourceFileSystemObject
 
     init(url: URL) throws {
-        handle = try FileHandle(forReadingFrom: url)
+        let descriptor = FileManager.default.fileSystemRepresentation(withPath: url.path)
+
+        handle = FileHandle(fileDescriptor: Int32(descriptor.pointee))
 
         source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: handle.fileDescriptor,
