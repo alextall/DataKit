@@ -6,6 +6,9 @@ public final class CodableFileClient {
     private var monitor: FolderMonitor
 
     public init(location: FileLocation) throws {
+        #if DEBUG
+        print("Using location: \(location.url)")
+        #endif
         var isDir: ObjCBool = true
         let locationExists = FileManager.default.fileExists(atPath: location.path,
                                                             isDirectory: &isDir)

@@ -16,7 +16,7 @@ extension FileLocation {
         case let .appGroup(identifier):
             possibleURL = FileManager.default.containerURL(
                 forSecurityApplicationGroupIdentifier: identifier
-            )
+            )?.appendingPathComponent("Documents")
         case .applicationSupport:
             possibleURL = FileManager.default.urls(
                 for: .applicationSupportDirectory,

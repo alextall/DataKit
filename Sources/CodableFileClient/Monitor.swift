@@ -3,17 +3,20 @@ import Foundation
 
 final class FolderMonitor {
     let handle: FileHandle
-    let folderDidChange: PassthroughSubject<Void, Never> = .init()
-    private var source: DispatchSourceFileSystemObject
+    let folderDidChange: PassthroughSubject<Void, Never>
+    private let source: DispatchSourceFileSystemObject
 
     init(url: URL) throws {
-        let descriptor = FileManager.default.fileSystemRepresentation(withPath: url.path)
+        let representation = (url.path as NSString).fileSystemRepresentation
+        let descriptor = open(representation, O_EVTONLY)
+        handle = FileHandle(fileDescriptor: descriptor)
 
-        handle = FileHandle(fileDescriptor: Int32(descriptor.pointee))
+        folderDidChange = .init()
 
         source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: handle.fileDescriptor,
-            eventMask: .write
+            eventMask: [.write],
+            queue: .main
         )
 
         source.setEventHandler { [folderDidChange] in
@@ -24,7 +27,11 @@ final class FolderMonitor {
             try? handle.close()
         }
 
-        source.resume()
+        source.setRegistrationHandler { [folderDidChange] in
+            folderDidChange.send()
+        }
+
+        source.activate()
     }
 
     deinit {
