@@ -3,7 +3,7 @@ import Foundation
 
 public final class CodableFileClient {
     private let location: FileLocation
-    private var monitor: FolderMonitor
+    private let monitor: FolderMonitor
 
     public init(location: FileLocation) throws {
         #if DEBUG
