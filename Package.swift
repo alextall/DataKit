@@ -31,6 +31,12 @@ let package = Package(
                 "HTTPClient",
             ]
         ),
+        .library(
+            name: "KeychainClient",
+            targets: [
+                "KeychainClient",
+            ]
+        ),
     ],
     targets: [
         .target(
@@ -40,6 +46,10 @@ let package = Package(
         .target(
             name: "HTTPClient",
             path: "Sources/HTTPClient"
+        ),
+        .target(
+            name: "KeychainClient",
+            path: "Sources/KeychainClient"
         ),
     ]
 )
