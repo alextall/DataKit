@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import os
 
 public final class CodableFileClient {
     private let location: FileLocation
@@ -7,7 +8,7 @@ public final class CodableFileClient {
 
     public init(location: FileLocation) throws {
         #if DEBUG
-        print("Using location: \(location.url)")
+        os_log("Using location: @%", location.path)
         #endif
         var isDir: ObjCBool = true
         let locationExists = FileManager.default.fileExists(atPath: location.path,
