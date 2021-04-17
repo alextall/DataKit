@@ -51,7 +51,7 @@ public extension CodableFileClient {
 
 // MARK: - Deleting
 
-extension CodableFileClient {
+public extension CodableFileClient {
     func delete<T: Codable & Identifiable>(object: T) -> AnyPublisher<Void, Error> where T.ID == UUID {
         delete(filename: object.id.uuidString)
     }
