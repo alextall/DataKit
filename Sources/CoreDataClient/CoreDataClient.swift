@@ -5,6 +5,7 @@ import os
 
 public class CoreDataClient {
     private let container: NSPersistentContainer
+    private let contextDidSave: PassthroughSubject<(), Never>
 
     public init(container: NSPersistentContainer = defaultContainer) {
         os_log("Loading persistent stores...")
@@ -16,6 +17,18 @@ public class CoreDataClient {
         }
         self.container = container
         container.viewContext.automaticallyMergesChangesFromParent = true
+        contextDidSave = .init()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleNotification),
+            name: .NSManagedObjectContextDidSave,
+            object: nil
+        )
+    }
+
+    @objc private func handleNotification() {
+        contextDidSave.send()
     }
 
     /// URLs for the persistent stores.
@@ -144,6 +157,14 @@ public extension CoreDataClient {
         }
     }
 
+    func objectsMonitor<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
+                                                in context: NSManagedObjectContext? = nil) -> AnyPublisher<ScratchPad<T>, PersistenceError> {
+        contextDidSave
+            .map { (fetchRequest, context) }
+            .flatMap(objects(for:in:))
+            .eraseToAnyPublisher()
+    }
+
     /// Returns a `ScratchPad` of containing a single object that meet the criteria specified by a given fetch request.
     /// - Parameters:
     ///   - fetchRequest: `NSFetchRequest` describing the objects to retrieve
@@ -164,6 +185,14 @@ public extension CoreDataClient {
                 return promise(.failure(.contextFetch(error)))
             }
         }
+    }
+
+    func objectMonitor<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
+                                                 in context: NSManagedObjectContext? = nil) -> AnyPublisher<ScratchPad<T>, PersistenceError> {
+        contextDidSave
+            .map { (fetchRequest, context) }
+            .flatMap(object(for:in:))
+            .eraseToAnyPublisher()
     }
 }
 
