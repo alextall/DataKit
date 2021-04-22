@@ -5,6 +5,7 @@ public enum FileLocation {
     case applicationSupport
     case documents
     case cache
+    case icloud(identifier: String)
     case custom(url: URL)
 }
 
@@ -28,6 +29,10 @@ extension FileLocation {
                 in: .userDomainMask
             )
             .first
+        case let .icloud(identifier):
+            possibleURL = FileManager.default.url(
+                forUbiquityContainerIdentifier: identifier
+            )
         case let .custom(capturedURL):
             possibleURL = capturedURL
         case .documents:
