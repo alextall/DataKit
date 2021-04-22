@@ -5,7 +5,7 @@ public enum FileLocation {
     case applicationSupport
     case documents
     case cache
-    case icloud(identifier: String)
+    case icloud(identifier: String?)
     case custom(url: URL)
 }
 
