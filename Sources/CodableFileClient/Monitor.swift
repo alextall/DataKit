@@ -15,7 +15,7 @@ final class FolderMonitor {
 
         source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: handle.fileDescriptor,
-            eventMask: [.write],
+            eventMask: [.all],
             queue: .main
         )
 

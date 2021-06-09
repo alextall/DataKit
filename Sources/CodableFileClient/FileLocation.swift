@@ -9,6 +9,8 @@ public enum FileLocation {
     case custom(url: URL)
 }
 
+extension FileLocation: Equatable {}
+
 extension FileLocation {
     var url: URL {
         let possibleURL: URL?
@@ -17,12 +19,14 @@ extension FileLocation {
         case let .appGroup(identifier):
             possibleURL = FileManager.default.containerURL(
                 forSecurityApplicationGroupIdentifier: identifier
-            )?.appendingPathComponent("Documents")
+            )?
+            .appendingPathComponent("Documents")
         case .applicationSupport:
             possibleURL = FileManager.default.urls(
                 for: .applicationSupportDirectory,
                 in: .userDomainMask
-            ).first
+            )
+            .first
         case .cache:
             possibleURL = FileManager.default.urls(
                 for: .cachesDirectory,
@@ -32,7 +36,8 @@ extension FileLocation {
         case let .icloud(identifier):
             possibleURL = FileManager.default.url(
                 forUbiquityContainerIdentifier: identifier
-            )
+            )?
+            .appendingPathComponent("Documents")
         case let .custom(capturedURL):
             possibleURL = capturedURL
         case .documents:

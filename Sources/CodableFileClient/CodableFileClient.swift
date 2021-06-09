@@ -57,7 +57,7 @@ public extension CodableFileClient {
     func object<T: Codable>(of type: T.Type, from filename: String) -> AnyPublisher<T, Error> {
         file(for: filename)
             .tryMap { try Data(contentsOf: $0) }
-            .decode(type: type, decoder: decoder)
+            .compactMap { [decoder] in try? decoder.decode(type, from: $0) }
             .eraseToAnyPublisher()
     }
 
@@ -65,7 +65,7 @@ public extension CodableFileClient {
         monitor.folderDidChange
             .setFailureType(to: Error.self)
             .flatMap { [unowned self] _ in
-                object(of: T.self, from: filename)
+                object(of: type, from: filename)
             }
             .eraseToAnyPublisher()
     }
@@ -75,9 +75,20 @@ public extension CodableFileClient {
     func files() -> AnyPublisher<[URL], Error> {
         return Future { [fileManager, location] promise in
             do {
-                let urls = try fileManager.contentsOfDirectory(at: location.url,
-                                                               includingPropertiesForKeys: nil,
-                                                               options: .skipsHiddenFiles)
+                let urls = try fileManager.contentsOfDirectory(
+                    at: location.url,
+                    includingPropertiesForKeys: nil,
+                    options: []
+                )
+                .filter { url in
+                    url.pathExtension == "json"
+                }
+
+                print("There are \(urls.count) JSON files.")
+
+                if case .icloud(identifier: _) = location {
+                    try? urls.forEach(fileManager.startDownloadingUbiquitousItem(at:))
+                }
                 promise(.success(urls))
             } catch {
                 promise(.failure(error))
@@ -88,7 +99,7 @@ public extension CodableFileClient {
     func objects<T: Codable>(from files: [URL]) -> AnyPublisher<[T], Error> {
         Publishers.Sequence<[URL], Error>(sequence: files)
             .tryMap { try Data(contentsOf: $0) }
-            .decode(type: T.self, decoder: decoder)
+            .compactMap { [decoder] in try? decoder.decode(T.self, from: $0) }
             .collect()
             .eraseToAnyPublisher()
     }
