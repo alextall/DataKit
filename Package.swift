@@ -25,24 +25,15 @@ let package = Package(
             ]
         ),
         .library(
-            name: "CodableFileClient",
+            name: "FileClient",
             targets: [
-                "CodableFileClient",
+                "FileClient",
             ]
         ),
     ],
     targets: [
-        .target(
-            name: "CoreDataClient",
-            path: "Sources/CoreDataClient"
-        ),
-        .target(
-            name: "HTTPClient",
-            path: "Sources/HTTPClient"
-        ),
-        .target(
-            name: "CodableFileClient",
-            path: "Sources/CodableFileClient"
-        ),
+        .target(name: "CoreDataClient"),
+        .target(name: "HTTPClient"),
+        .target(name: "FileClient")
     ]
 )

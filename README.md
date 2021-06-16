@@ -3,7 +3,7 @@
 DataKit consists of several modules that add a `Combine` interface to `CoreData` and `URLSession`.
 These modules can be used individually or together as needed.
 
-**CodableFileClient:** An object to read/write/delete `Codable` objects to disk. 
+**FileClient:** An object to read/write/delete `Codable` objects to disk. 
 
 **CoreDataClient:** A `CoreData` stack with convenience methods for the basic CRUD operations. Includes support for `NSManagedObject`s that conform to `Codable`.
 

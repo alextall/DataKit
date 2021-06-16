@@ -2,7 +2,7 @@ import Combine
 import Foundation
 import os
 
-public final class CodableFileClient {
+public final class FileClient {
     private let location: FileLocation
     private let monitor: FolderMonitor
 
@@ -31,7 +31,7 @@ public final class CodableFileClient {
 
 // MARK: - Saving
 
-public extension CodableFileClient {
+public extension FileClient {
     func save<T: Codable>(object: T, filename: String) -> AnyPublisher<T, Error> {
         Future { [encoder, location] promise in
             do {
@@ -48,7 +48,7 @@ public extension CodableFileClient {
 
 // MARK: - Fetching
 
-public extension CodableFileClient {
+public extension FileClient {
     func file(for filename: String) -> AnyPublisher<URL, Never> {
         Just(location.url(for: filename))
             .eraseToAnyPublisher()
@@ -71,7 +71,7 @@ public extension CodableFileClient {
     }
 }
 
-public extension CodableFileClient {
+public extension FileClient {
     func files() -> AnyPublisher<[URL], Error> {
         return Future { [fileManager, location] promise in
             do {
@@ -122,7 +122,7 @@ public extension CodableFileClient {
 
 // MARK: - Deleting
 
-public extension CodableFileClient {
+public extension FileClient {
     func delete(filename: String) -> AnyPublisher<Void, Error> {
         Future { [fileManager, location] promise in
             do {
@@ -137,7 +137,7 @@ public extension CodableFileClient {
 
 // MARK: - Helpers
 
-private extension CodableFileClient {
+private extension FileClient {
     var encoder: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601

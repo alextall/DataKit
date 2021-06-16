@@ -3,7 +3,7 @@ import Combine
 
 // MARK: - Saving
 
-public extension CodableFileClient {
+public extension FileClient {
     func save<T: Codable & Identifiable>(object: T) -> AnyPublisher<T, Error> where T.ID == UUID {
         save(object: object, filename: object.id.uuidString)
     }
@@ -19,7 +19,7 @@ public extension CodableFileClient {
 
 // MARK: - Fetching
 
-public extension CodableFileClient {
+public extension FileClient {
     func object<T: Codable & Identifiable>(of type: T.Type, with id: T.ID) -> AnyPublisher<T, Error> where T.ID == UUID {
         object(of: type, from: id.uuidString)
     }
@@ -35,7 +35,7 @@ public extension CodableFileClient {
 
 // MARK: - Fetching
 
-public extension CodableFileClient {
+public extension FileClient {
     func objectMonitor<T: Codable & Identifiable>(of type: T.Type, with id: T.ID) -> AnyPublisher<T, Error> where T.ID == UUID {
         objectMonitor(of: type, from: id.uuidString)
     }
@@ -51,7 +51,7 @@ public extension CodableFileClient {
 
 // MARK: - Deleting
 
-public extension CodableFileClient {
+public extension FileClient {
     func delete<T: Codable & Identifiable>(object: T) -> AnyPublisher<Void, Error> where T.ID == UUID {
         delete(filename: object.id.uuidString)
     }
