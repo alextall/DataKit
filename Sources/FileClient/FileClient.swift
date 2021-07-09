@@ -32,17 +32,32 @@ public final class FileClient {
 // MARK: - Saving
 
 public extension FileClient {
-    func save<T: Codable>(object: T, filename: String) -> AnyPublisher<T, Error> {
-        Future { [encoder, location] promise in
+    func save(data: Data, filename: String) -> AnyPublisher<Void, FileClientError> {
+        Future { [location] promise in
             do {
-                let data = try encoder.encode(object)
                 try data.write(to: location.url(for: filename),
                                options: [.atomic])
-                promise(.success(object))
+                promise(.success(()))
             } catch {
-                promise(.failure(error))
+                promise(.failure(.writing(error)))
             }
-        }.eraseToAnyPublisher()
+        }
+        .eraseToAnyPublisher()
+    }
+
+    func save<T: Codable>(object: T, filename: String) -> AnyPublisher<Void, FileClientError> {
+        Future<Data, FileClientError> { [encoder] promise in
+            do {
+                let data = try encoder.encode(object)
+                promise(.success(data))
+            } catch {
+                promise(.failure(.encoding(error)))
+            }
+        }
+        .flatMap { [self] data in
+            save(data: data, filename: filename)
+        }
+        .eraseToAnyPublisher()
     }
 }
 
@@ -54,25 +69,36 @@ public extension FileClient {
             .eraseToAnyPublisher()
     }
 
-    func object<T: Codable>(of type: T.Type, from filename: String) -> AnyPublisher<T, Error> {
+    func decode<T: Codable>(type: T.Type, from data: Data) -> AnyPublisher<T, FileClientError> {
+        Future { [decoder] promise in
+            do {
+                let result = try decoder.decode(type, from: data)
+                promise(.success(result))
+            } catch {
+                promise(.failure(.decoding(error)))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+
+    func object<T: Codable>(of type: T.Type, from filename: String) -> AnyPublisher<T, FileClientError> {
         file(for: filename)
             .tryMap { try Data(contentsOf: $0) }
-            .compactMap { [decoder] in try? decoder.decode(type, from: $0) }
+            .mapError(FileClientError.reading)
+            .flatMap { [self] in decode(type: type, from: $0) }
             .eraseToAnyPublisher()
     }
 
-    func objectMonitor<T: Codable>(of type: T.Type, from filename: String) -> AnyPublisher<T, Error> {
+    func objectMonitor<T: Codable>(of type: T.Type, from filename: String) -> AnyPublisher<T, FileClientError> {
         monitor.folderDidChange
-            .setFailureType(to: Error.self)
-            .flatMap { [unowned self] _ in
-                object(of: type, from: filename)
-            }
+            .setFailureType(to: FileClientError.self)
+            .flatMap { [self] in object(of: type, from: filename) }
             .eraseToAnyPublisher()
     }
 }
 
 public extension FileClient {
-    func files() -> AnyPublisher<[URL], Error> {
+    func files() -> AnyPublisher<[URL], FileClientError> {
         return Future { [fileManager, location] promise in
             do {
                 let urls = try fileManager.contentsOfDirectory(
@@ -84,38 +110,35 @@ public extension FileClient {
                     url.pathExtension == "json"
                 }
 
-                print("There are \(urls.count) JSON files.")
-
                 if case .icloud(identifier: _) = location {
                     try? urls.forEach(fileManager.startDownloadingUbiquitousItem(at:))
                 }
                 promise(.success(urls))
             } catch {
-                promise(.failure(error))
+                promise(.failure(.reading(error)))
             }
         }.eraseToAnyPublisher()
     }
 
-    func objects<T: Codable>(from files: [URL]) -> AnyPublisher<[T], Error> {
+    func objects<T: Codable>(from files: [URL]) -> AnyPublisher<[T], FileClientError> {
         Publishers.Sequence<[URL], Error>(sequence: files)
             .tryMap { try Data(contentsOf: $0) }
+            .mapError(FileClientError.reading)
             .compactMap { [decoder] in try? decoder.decode(T.self, from: $0) }
             .collect()
             .eraseToAnyPublisher()
     }
 
-    func objects<T: Codable>(of _: T.Type) -> AnyPublisher<[T], Error> {
+    func objects<T: Codable>(of _: T.Type) -> AnyPublisher<[T], FileClientError> {
         files()
             .flatMap(objects(from:))
             .eraseToAnyPublisher()
     }
 
-    func objectMonitor<T: Codable>(of type: T.Type) -> AnyPublisher<[T], Error> {
+    func objectMonitor<T: Codable>(of type: T.Type) -> AnyPublisher<[T], FileClientError> {
         monitor.folderDidChange
-            .setFailureType(to: Error.self)
-            .flatMap { [unowned self] _ in
-                objects(of: type)
-            }
+            .setFailureType(to: FileClientError.self)
+            .flatMap { [self] _ in objects(of: type) }
             .eraseToAnyPublisher()
     }
 }
@@ -123,13 +146,13 @@ public extension FileClient {
 // MARK: - Deleting
 
 public extension FileClient {
-    func delete(filename: String) -> AnyPublisher<Void, Error> {
+    func delete(filename: String) -> AnyPublisher<Void, FileClientError> {
         Future { [fileManager, location] promise in
             do {
                 try fileManager.removeItem(at: location.url(for: filename))
                 promise(.success(()))
             } catch {
-                promise(.failure(error))
+                promise(.failure(.deleting(error)))
             }
         }.eraseToAnyPublisher()
     }
