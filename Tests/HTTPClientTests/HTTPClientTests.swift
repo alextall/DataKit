@@ -18,6 +18,13 @@ final class HTTPClientTests: XCTestCase {
         expectation = expectation(description: "Expectation")
     }
 
+    override func tearDown() {
+        client = nil
+        expectation = nil
+        bag.forEach { $0.cancel() }
+        bag.removeAll()
+    }
+
     // MARK: - GET
 
     func testGetRequest() {
