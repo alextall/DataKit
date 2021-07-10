@@ -34,6 +34,13 @@ let package = Package(
     targets: [
         .target(name: "CoreDataClient"),
         .target(name: "HTTPClient"),
-        .target(name: "FileClient")
+        .target(name: "FileClient"),
+
+        .testTarget(name: "CoreDataClientTests",
+                    dependencies: ["CoreDataClient"]),
+        .testTarget(name: "HTTPClientTests",
+                    dependencies: ["HTTPClient"]),
+        .testTarget(name: "FileClientTests",
+                    dependencies: ["FileClient"]),
     ]
 )

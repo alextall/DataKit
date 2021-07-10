@@ -31,9 +31,11 @@ extension HTTPClient {
                                     } else if let error = error {
                                         promise(.failure(.unknown(error)))
                                     }
-                                    let response = response as! HTTPURLResponse
+                                    guard let response = response as? HTTPURLResponse else {
+                                        return promise(.failure(HTTPError.unknown(URLError(.unknown))))
+                                    }
                                     if let data = data {
-                                        promise(.success(.body(data: data, response: response)))
+                                        return promise(.success(.body(data: data, response: response)))
                                     }
                                     promise(.success(.empty(response)))
             }).resume()
