@@ -36,8 +36,13 @@ let package = Package(
         .target(name: "HTTPClient"),
         .target(name: "FileClient"),
 
-        .testTarget(name: "CoreDataClientTests",
-                    dependencies: ["CoreDataClient"]),
+        .testTarget(
+            name: "CoreDataClientTests",
+            dependencies: ["CoreDataClient"],
+            resources: [
+                .process("Resources/Model.xcdatamodel")
+            ]
+        ),
         .testTarget(name: "HTTPClientTests",
                     dependencies: ["HTTPClient"]),
         .testTarget(name: "FileClientTests",
