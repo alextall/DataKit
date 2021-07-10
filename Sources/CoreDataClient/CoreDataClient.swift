@@ -34,7 +34,7 @@ public class CoreDataClient {
     /// URLs for the persistent stores.
     /// Useful for debugging purposes
     public var storeURLs: [URL] {
-        return container.persistentStoreDescriptions.compactMap { $0.url }
+        return container.persistentStoreDescriptions.compactMap(\.url)
     }
 }
 
@@ -108,29 +108,14 @@ public extension CoreDataClient {
 public extension CoreDataClient {
     /// Saves the underlying `NSManagedObjectContext` in a `ScratchPad`
     /// - Parameter scratchPad: `ScratchPad` with changes to save.
-    @discardableResult
-    func save<T>(scratchPad: ScratchPad<T>) -> Future<ScratchPad<T>, PersistenceError> {
-        return Future { promise in
-            _ = self.save(context: scratchPad.context)
-                .sink(receiveCompletion: { completion in
-                    if case let .failure(error) = completion {
-                        promise(.failure(error))
-                    }
-                }) { _ in
-                    promise(.success(scratchPad))
-                }
-        }
+    func save<T>(scratchPad: ScratchPad<T>) async throws {
+        try await save(context: scratchPad.context)
     }
 
-    private func save(context: NSManagedObjectContext) -> Future<Void, PersistenceError> {
-        return Future<Void, PersistenceError> { promise in
-            do {
-                if context.hasChanges {
-                    try context.save()
-                }
-                promise(.success(()))
-            } catch let error as NSError {
-                promise(.failure(.contextSave(error)))
+    private func save(context: NSManagedObjectContext) async throws {
+        async {
+            if context.hasChanges {
+                try context.save()
             }
         }
     }
@@ -144,26 +129,19 @@ public extension CoreDataClient {
     ///   - fetchRequest: `NSFetchRequest` describing the objects to retrieve
     ///   - context: `NSManagedObjectContext` to use. Defaults to the `viewContext` if nil.
     func objects<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
-                                          in context: NSManagedObjectContext? = nil)
-        -> Future<ScratchPad<T>, PersistenceError> {
+                                          in context: NSManagedObjectContext? = nil) async throws -> ScratchPad<T> {
         let context = context ?? viewContext
-        return Future { promise in
-            do {
-                let result = try context.fetch(fetchRequest)
-                return promise(.success(.list(value: result, context: context)))
-            } catch let error as NSError {
-                return promise(.failure(.contextFetch(error)))
-            }
-        }
+        let result = try context.fetch(fetchRequest)
+        return .list(value: result, context: context)
     }
 
-    func objectsMonitor<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
-                                                in context: NSManagedObjectContext? = nil) -> AnyPublisher<ScratchPad<T>, PersistenceError> {
-        contextDidSave
-            .map { (fetchRequest, context) }
-            .flatMap(objects(for:in:))
-            .eraseToAnyPublisher()
-    }
+//    func objectsMonitor<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
+//                                                in context: NSManagedObjectContext? = nil) -> AnyPublisher<ScratchPad<T>, PersistenceError> {
+//        contextDidSave
+//            .map { (fetchRequest, context) }
+//            .flatMap(objects(for:in:))
+//            .eraseToAnyPublisher()
+//    }
 
     /// Returns a `ScratchPad` of containing a single object that meet the criteria specified by a given fetch request.
     /// - Parameters:
