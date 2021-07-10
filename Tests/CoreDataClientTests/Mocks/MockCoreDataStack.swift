@@ -6,7 +6,7 @@ func inMemoryStack() -> CoreDataClient {
     var managedObjectModel: NSManagedObjectModel {
         let momURL = Bundle.module.url(forResource: nil, withExtension: "mom")!
         let mom = NSManagedObjectModel(contentsOf: momURL)!
-        print(mom.entities.map(\.className))
+        print(mom.entities.map(\.managedObjectClassName))
         return mom
     }
 
