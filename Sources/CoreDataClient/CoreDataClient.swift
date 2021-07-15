@@ -109,7 +109,7 @@ public extension CoreDataClient {
     /// Saves the underlying `NSManagedObjectContext` in a `ScratchPad`
     /// - Parameter scratchPad: `ScratchPad` with changes to save.
     @discardableResult
-    func save<T>(scratchPad: ScratchPad<T>) -> Future<ScratchPad<T>, PersistenceError> {
+    func save<T>(scratchPad: ScratchPad<T>) -> AnyPublisher<ScratchPad<T>, PersistenceError> {
         return Future { promise in
             _ = self.save(context: scratchPad.context)
                 .sink(receiveCompletion: { completion in
@@ -120,9 +120,10 @@ public extension CoreDataClient {
                     promise(.success(scratchPad))
                 }
         }
+        .eraseToAnyPublisher()
     }
 
-    private func save(context: NSManagedObjectContext) -> Future<Void, PersistenceError> {
+    private func save(context: NSManagedObjectContext) -> AnyPublisher<Void, PersistenceError> {
         return Future<Void, PersistenceError> { promise in
             do {
                 if context.hasChanges {
@@ -133,6 +134,7 @@ public extension CoreDataClient {
                 promise(.failure(.contextSave(error)))
             }
         }
+        .eraseToAnyPublisher()
     }
 }
 
@@ -145,7 +147,7 @@ public extension CoreDataClient {
     ///   - context: `NSManagedObjectContext` to use. Defaults to the `viewContext` if nil.
     func objects<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
                                           in context: NSManagedObjectContext? = nil)
-        -> Future<ScratchPad<T>, PersistenceError> {
+        -> AnyPublisher<ScratchPad<T>, PersistenceError> {
         let context = context ?? viewContext
         return Future { promise in
             do {
@@ -155,6 +157,7 @@ public extension CoreDataClient {
                 return promise(.failure(.contextFetch(error)))
             }
         }
+        .eraseToAnyPublisher()
     }
 
     func objectsMonitor<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
@@ -171,7 +174,7 @@ public extension CoreDataClient {
     ///   - context: `NSManagedObjectContext` to use. Defaults to the `viewContext` if nil.
     func object<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
                                          in context: NSManagedObjectContext? = nil)
-        -> Future<ScratchPad<T>, PersistenceError> {
+        -> AnyPublisher<ScratchPad<T>, PersistenceError> {
         let context = context ?? viewContext
         return Future { promise in
             do {
@@ -185,6 +188,7 @@ public extension CoreDataClient {
                 return promise(.failure(.contextFetch(error)))
             }
         }
+        .eraseToAnyPublisher()
     }
 
     func objectMonitor<T: NSFetchRequestResult>(for fetchRequest: NSFetchRequest<T>,
@@ -232,7 +236,7 @@ public extension CoreDataClient {
     @discardableResult
     func deleteObjects<T: NSManagedObject>(ofType _: T.Type,
                                            in context: NSManagedObjectContext? = nil)
-        -> Future<ScratchPad<T>, PersistenceError> {
+        -> AnyPublisher<ScratchPad<T>, PersistenceError> {
         let context = context ?? viewContext
         return Future { promise in
             do {
@@ -246,6 +250,7 @@ public extension CoreDataClient {
                 return promise(.failure(.contextFetch(error)))
             }
         }
+        .eraseToAnyPublisher()
     }
 
     /// Deletes all objects in the given scratchpad.
@@ -253,12 +258,13 @@ public extension CoreDataClient {
     ///   - scratch: `ScratchPad` to use
     @discardableResult
     func deleteObjects<T: NSManagedObject>(in scratch: ScratchPad<T>)
-        -> Future<ScratchPad<T>, Never> {
+        -> AnyPublisher<ScratchPad<T>, Never> {
         return Future { promise in
             scratch.array.forEach(scratch.context.delete)
             try? scratch.context.save()
             return promise(.success(.empty(scratch.context)))
         }
+        .eraseToAnyPublisher()
     }
 }
 
